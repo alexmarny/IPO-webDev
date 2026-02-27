@@ -1,0 +1,22 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Lo que podemos hacer con Javascript</title>
+    <link href="css/jugador.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+<p>Player 1: Alicia</p>
+      <p>Player 2: Alicia</p><p>Player 3: Alicia</p><p>Player 4: Alicia</p><p>Player 5: Alicia</p>
+  </body>
+    <script>
+        const para = document.querySelector("p");
+
+para.addEventListener("click", updateName);
+
+function updateName() {
+  let name = prompt("Enter a new name");
+  para.textContent = "Player 1: " + name;
+}
+    </script>
+</html>

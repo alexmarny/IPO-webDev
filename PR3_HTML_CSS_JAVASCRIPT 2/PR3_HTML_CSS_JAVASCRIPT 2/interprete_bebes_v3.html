@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Interpretador de Sonidos de Bebé</title>
+    <link href="css/bebe_future2.css" rel="stylesheet" type="text/css" />
+    <script src="js/interprete_bebe.js" defer></script>
+
+
+</head>
+<body>
+    <header>
+        <h1>Interpretador de Sonidos de Bebé</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="#inicio">Inicio</a></li>
+            <li><a href="#acerca">Acerca de</a></li>
+            <li><a href="#contacto">Contacto</a></li>
+        </ul>
+    </nav>
+    <main>
+        <section id="inicio">
+            <h2>Bienvenido</h2>
+            <p>Esta aplicación te ayuda a interpretar los sonidos de tu bebé.</p>
+        </section>
+        <section id="interpretador">
+            <h2>Interpretador</h2>
+            <p>Sube un archivo de audio y nuestro algoritmo interpretará el sonido.</p>
+            <form>
+                <label for="file-upload">Subir archivo de audio:</label>
+                <input type="file" id="file-upload" name="file-upload" accept="audio/*">
+                <input type="submit" value="Interpretar">
+            </form>
+        </section>
+    </main>
+    <footer>
+        <p>© 2024 Interpretador de Sonidos de Bebé</p>
+    </footer>
+</body>
+</html>

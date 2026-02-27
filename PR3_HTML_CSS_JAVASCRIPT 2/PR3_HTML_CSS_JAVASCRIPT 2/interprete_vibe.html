@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BabyCry - Intérprete de Llantos</title>
+    <style>
+        :root {
+            --primary: #ff85a2;
+            --primary-dark: #f06292;
+            --secondary: #b3e5fc;
+            --accent: #ffd54f;
+            --bg: #f8f9fa;
+            --text: #444;
+            --white: #ffffff;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--white);
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            position: relative;
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 25px;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            letter-spacing: 1px;
+        }
+
+        /* Baby Selector */
+        .baby-selector {
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            border-bottom: 1px solid #eee;
+        }
+
+        .baby-card {
+            min-width: 80px;
+            text-align: center;
+            padding: 10px;
+            border-radius: 15px;
+            background: #f0f0f0;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .baby-card.active {
+            background: var(--secondary);
+            border-color: var(--primary);
+        }
+
+        .baby-avatar {
+            font-size: 2rem;
+            display: block;
+        }
+
+        .baby-name {
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .analyzer-box {
+            width: 100%;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .visualizer-container {
+            width: 100%;
+            height: 120px;
+            background: #222;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .status-text {
+            font-style: italic;
+            color: #888;
+            margin-bottom: 20px;
+            height: 20px;
+        }
+
+        /* Buttons */
+        .btn-record {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 8px solid #ffebee;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, background 0.3s;
+            box-shadow: 0 4px 10px rgba(255, 133, 162, 0.4);
+        }
+
+        .btn-record:active {
+            transform: scale(0.9);
+        }
+
+        .btn-record.recording {
+            background: #ff1744;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 23, 68, 0.7); }
+            70% { box-shadow: 0 0 0 20px rgba(255, 23, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 23, 68, 0); }
+        }
+
+        .upload-link {
+            margin-top: 15px;
+            color: var(--primary);
+            text-decoration: underline;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        /* Result Section */
+        .result-card {
+            width: 100%;
+            background: var(--secondary);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-title {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #0277bd;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-desc {
+            font-size: 0.95rem;
+            line-height: 1.4;
+            color: #01579b;
+        }
+
+        .advice-box {
+            margin-top: 15px;
+            background: rgba(255,255,255,0.5);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid var(--accent);
+        }
+
+        .advice-title {
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: #f57f17;
+            margin-bottom: 5px;
+        }
+
+        /* Modal add baby */
+        .modal {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            width: 80%;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .btn-action {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>BabyCry Interpreter</h1>
+    </header>
+
+    <!-- Selector de Bebés -->
+    <div class="baby-selector" id="babySelector">
+        <div class="baby-card active" onclick="selectBaby(0)">
+            <span class="baby-avatar">👶</span>
+            <span class="baby-name">Leo</span>
+        </div>
+        <div class="baby-card" onclick="selectBaby(1)">
+            <span class="baby-avatar">🍼</span>
+            <span class="baby-name">Emma</span>
+        </div>
+        <div class="baby-card" id="addBabyBtn" onclick="toggleModal(true)">
+            <span class="baby-avatar">➕</span>
+            <span class="baby-name">Nuevo</span>
+        </div>
+    </div>
+
+    <main>
+        <div class="analyzer-box">
+            <h2 id="currentBabyTitle">Escuchando a Leo</h2>
+            <div class="visualizer-container">
+                <canvas id="visualizer"></canvas>
+                <div id="no-audio" style="position:absolute; color: #555;">Pulsa para grabar</div>
+            </div>
+            
+            <p class="status-text" id="statusText">Listo para interpretar...</p>
+
+            <button class="btn-record" id="recordBtn" onclick="toggleRecording()">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="white">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                </svg>
+            </button>
+
+            <input type="file" id="fileInput" hidden accept="audio/*" onchange="handleFileUpload()">
+            <span class="upload-link" onclick="document.getElementById('fileInput').click()">Subir archivo de audio</span>
+        </div>
+
+        <!-- Resultados del Análisis -->
+        <div class="result-card" id="resultCard">
+            <div class="result-title">
+                <span id="resultEmoji">🤢</span>
+                <span id="resultType">Dolor de estómago</span>
+            </div>
+            <div class="result-desc" id="resultDesc">
+                El patrón de llanto rítmico e intenso sugiere molestias digestivas o gases.
+            </div>
+            <div class="advice-box">
+                <div class="advice-title">Consejo experto</div>
+                <div id="resultAdvice">Intenta realizar masajes suaves en sentido de las agujas del reloj sobre su barriguita o ponlo en posición vertical.</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal para añadir bebé -->
+    <div class="modal" id="addBabyModal">
+        <div class="modal-content">
+            <h3>Añadir Nuevo Bebé</h3>
+            <input type="text" id="newBabyName" placeholder="Nombre del bebé">
+            <button class="btn-action" onclick="addBaby()">Guardar</button>
+            <button class="upload-link" style="border:none; background:none; display:block; margin: 10px auto;" onclick="toggleModal(false)">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Datos y Estado ---
+    let babies = [
+        { name: "Leo", avatar: "👶" },
+        { name: "Emma", avatar: "🍼" }
+    ];
+    let activeBabyIndex = 0;
+    let isRecording = false;
+    let audioContext, analyser, dataArray, animationId;
+
+    const interpretations = [
+        {
+            type: "Hambre",
+            emoji: "🍼",
+            desc: "Llanto rítmico, a menudo acompañado de sonidos de succión o manos a la boca.",
+            advice: "Es hora de alimentarlo. Si acaba de comer, verifica si necesita eructar."
+        },
+        {
+            type: "Sueño",
+            emoji: "😴",
+            desc: "Llanto que empieza suave y se vuelve quejumbroso, frotándose los ojos.",
+            advice: "Crea un ambiente tranquilo, reduce la luz y arrúllalo suavemente."
+        },
+        {
+            type: "Pañal sucio",
+            emoji: "💩",
+            desc: "Un llanto intermitente y molesto, como una queja constante.",
+            advice: "Revisa su pañal. La humedad puede irritar su piel rápidamente."
+        },
+        {
+            type: "Dolor de estómago",
+            emoji: "🤢",
+            desc: "Llanto intenso y agudo, encogiendo las piernas hacia el abdomen.",
+            advice: "Realiza masajes circulares en su abdomen o flexiona sus piernas suavemente (la 'bicicleta')."
+        },
+        {
+            type: "Picor o Incomodidad",
+            emoji: "👕",
+            desc: "Llanto inquieto, el bebé se mueve mucho intentando cambiar de posición.",
+            advice: "Revisa si la ropa le aprieta, si hay alguna etiqueta molestando o si tiene calor/frío."
+        }
+    ];
+
+    // --- Funciones de UI ---
+    function selectBaby(index) {
+        if (index >= babies.length) return;
+        activeBabyIndex = index;
+        document.querySelectorAll('.baby-card').forEach((card, i) => {
+            card.classList.toggle('active', i === index);
+        });
+        document.getElementById('currentBabyTitle').innerText = `Escuchando a ${babies[index].name}`;
+        hideResult();
+    }
+
+    function toggleModal(show) {
+        document.getElementById('addBabyModal').style.display = show ? 'flex' : 'none';
+    }
+
+    function addBaby() {
+        const name = document.getElementById('newBabyName').value;
+        if (!name) return;
+        
+        babies.push({ name: name, avatar: "👶" });
+        renderBabies();
+        toggleModal(false);
+        document.getElementById('newBabyName').value = "";
+    }
+
+    function renderBabies() {
+        const container = document.getElementById('babySelector');
+        const addButton = document.getElementById('addBabyBtn');
+        
+        // Limpiar anteriores (excepto el botón añadir)
+        const cards = container.querySelectorAll('.baby-card:not(#addBabyBtn)');
+        cards.forEach(c => c.remove());
+
+        babies.forEach((baby, index) => {
+            const card = document.createElement('div');
+            card.className = `baby-card ${index === activeBabyIndex ? 'active' : ''}`;
+            card.onclick = () => selectBaby(index);
+            card.innerHTML = `
+                <span class="baby-avatar">${baby.avatar}</span>
+                <span class="baby-name">${baby.name}</span>
+            `;
+            container.insertBefore(card, addButton);
+        });
+    }
+
+    // --- Simulación de Análisis de Audio ---
+    async function toggleRecording() {
+        if (isRecording) {
+            stopRecording();
+        } else {
+            startRecording();
+        }
+    }
+
+    async function startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            isRecording = true;
+            document.getElementById('recordBtn').classList.add('recording');
+            document.getElementById('statusText').innerText = "Analizando frecuencias de llanto...";
+            document.getElementById('no-audio').style.display = 'none';
+            hideResult();
+
+            setupVisualizer(stream);
+
+            // Simular análisis durante 4 segundos
+            setTimeout(() => {
+                if(isRecording) processResult();
+            }, 4000);
+
+        } catch (err) {
+            console.error("No se pudo acceder al micrófono", err);
+            // Fallback: simular sin micrófono si el navegador bloquea
+            isRecording = true;
+            document.getElementById('recordBtn').classList.add('recording');
+            document.getElementById('statusText').innerText = "Simulando escucha (Micrófono no disponible)...";
+            document.getElementById('no-audio').style.display = 'none';
+            drawStaticVisualizer();
+            setTimeout(() => {
+                if(isRecording) processResult();
+            }, 4000);
+        }
+    }
+
+    function stopRecording() {
+        isRecording = false;
+        document.getElementById('recordBtn').classList.remove('recording');
+        document.getElementById('statusText').innerText = "Análisis pausado.";
+        if (animationId) cancelAnimationFrame(animationId);
+    }
+
+    function handleFileUpload() {
+        document.getElementById('statusText').innerText = "Archivo recibido. Procesando...";
+        hideResult();
+        setTimeout(() => {
+            processResult();
+        }, 2000);
+    }
+
+    function processResult() {
+        stopRecording();
+        document.getElementById('statusText').innerText = "¡Interpretación lista!";
+        
+        // Selección aleatoria para el prototipo
+        const randomResult = interpretations[Math.floor(Math.random() * interpretations.length)];
+        
+        showResult(randomResult);
+    }
+
+    function showResult(data) {
+        const card = document.getElementById('resultCard');
+        document.getElementById('resultEmoji').innerText = data.emoji;
+        document.getElementById('resultType').innerText = data.type;
+        document.getElementById('resultDesc').innerText = data.desc;
+        document.getElementById('resultAdvice').innerText = data.advice;
+        
+        card.style.display = 'block';
+    }
+
+    function hideResult() {
+        document.getElementById('resultCard').style.display = 'none';
+    }
+
+    // --- Visualizador ---
+    function setupVisualizer(stream) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaStreamSource(stream);
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        source.connect(analyser);
+
+        const canvas = document.getElementById('visualizer');
+        const ctx = canvas.getContext('2d');
+        const bufferLength = analyser.frequencyBinCount;
+        dataArray = new Uint8Array(bufferLength);
+
+        function draw() {
+            if (!isRecording) return;
+            animationId = requestAnimationFrame(draw);
+            analyser.getByteFrequencyData(dataArray);
+
+            ctx.fillStyle = '#222';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const barWidth = (canvas.width / bufferLength) * 2.5;
+            let barHeight;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                barHeight = dataArray[i] / 2;
+                ctx.fillStyle = `rgb(255, ${133 + barHeight}, 162)`;
+                ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+                x += barWidth + 1;
+            }
+        }
+        draw();
+    }
+
+    function drawStaticVisualizer() {
+        const canvas = document.getElementById('visualizer');
+        const ctx = canvas.getContext('2d');
+        function animate() {
+            if (!isRecording) return;
+            ctx.fillStyle = '#222';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#ff85a2';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, canvas.height/2);
+            for(let i=0; i<canvas.width; i+=5) {
+                ctx.lineTo(i, (canvas.height/2) + Math.random() * 40 - 20);
+            }
+            ctx.stroke();
+            animationId = requestAnimationFrame(animate);
+        }
+        animate();
+    }
+
+    // Inicialización
+    window.onload = () => {
+        const canvas = document.getElementById('visualizer');
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+    };
+</script>
+
+</body>
+</html>

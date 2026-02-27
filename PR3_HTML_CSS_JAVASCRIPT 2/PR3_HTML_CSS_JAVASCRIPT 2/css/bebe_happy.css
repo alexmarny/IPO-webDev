@@ -1,0 +1,51 @@
+body {
+    font-family: 'Comic Sans MS', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #FFDDC1;
+}
+
+header {
+    background-color: #FFABAB;
+    color: #392F5A;
+    padding: 10px;
+    text-align: center;
+}
+
+nav {
+    background-color: #FFC947;
+    padding: 10px;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin-right: 10px;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: #125D98;
+}
+
+main {
+    padding: 20px;
+}
+
+section {
+    margin-bottom: 20px;
+}
+
+footer {
+    background-color: #FFABAB;
+    color: #392F5A;
+    text-align: center;
+    padding: 10px;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
